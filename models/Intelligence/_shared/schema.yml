@@ -1,0 +1,102 @@
+version: 2
+
+models:
+  - name: dim_cohort
+    description: >
+      Canonical cohort dimension.
+      Defines deterministic, recomputable cohorts used across all intelligence modules.
+    columns:
+      - name: cohort_id
+        description: >
+          Deterministic surrogate key representing a unique cohort definition.
+        tests:
+          - not_null
+          - unique
+
+
+  - name: dim_date
+    description: >
+      Canonical calendar date dimension.
+      Provides deterministic, gapless temporal structure for all intelligence modules.
+    columns:
+      - name: date_key
+        description: >
+          Canonical calendar date key (one row per calendar day).
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_population_stage
+    description: >
+      Canonical population stage dimension.
+      Defines the ordered structural stages used across all intelligence modules.
+    columns:
+      - name: population_stage_key
+        description: >
+          Stable surrogate key for the population stage.
+        tests:
+          - not_null
+          - unique
+
+      - name: population_stage_name
+        description: >
+          Canonical population stage name.
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - exposure
+                - engagement
+                - purchase
+                - loyalty
+
+
+  - name: dim_phase
+    description: >
+      Canonical structural phase dimension.
+      Defines the structural phase of value formation used across intelligence modules.
+    columns:
+      - name: phase_key
+        description: >
+          Stable canonical key representing the structural phase.
+        tests:
+          - not_null
+          - unique
+          - accepted_values:
+              values:
+                - extraction
+                - stability
+                - illusion
+                - hidden_compounding
+
+      - name: phase_name
+        description: >
+          Human-readable name of the structural phase.
+        tests:
+          - not_null
+
+
+  - name: dim_discount_intensity_band
+    description: >
+      Canonical discount intensity band dimension.
+      Normalizes discount aggressiveness into stable structural bands.
+    columns:
+      - name: discount_intensity_band_key
+        description: >
+          Stable canonical key representing discount intensity.
+        tests:
+          - not_null
+          - unique
+          - accepted_values:
+              values:
+                - no_discount
+                - light_discount
+                - moderate_discount
+                - heavy_discount
+                - extreme_discount
+
+      - name: discount_intensity_band_name
+        description: >
+          Human-readable discount intensity band label.
+        tests:
+          - not_null

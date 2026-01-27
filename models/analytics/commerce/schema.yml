@@ -1,0 +1,203 @@
+version: 2
+
+models:
+  - name: analytics_orders
+    description: >
+      Canonical order table for all downstream analysis.
+      One row per Shopify order. No metrics, no business logic.
+    columns:
+      - name: order_id
+        description: Primary key - Shopify order ID
+        tests:
+          - unique
+          - not_null
+      - name: created_at
+        description: Order creation timestamp
+        tests:
+          - not_null
+      - name: currency
+        description: Order currency
+        tests:
+          - not_null
+
+  - name: analytics_order_line_items
+    description: >
+      Canonical line item fact table.
+      One row per line item per order. No metrics, no business logic.
+    columns:
+      - name: line_item_id
+        description: Primary key - Shopify line item ID
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: Parent order ID (join key)
+        tests:
+          - not_null
+      - name: quantity
+        description: Quantity ordered
+        tests:
+          - not_null
+      - name: price
+        description: Unit price
+        tests:
+          - not_null
+
+  - name: analytics_customers
+    description: >
+      Canonical customer dimension.
+      One row per customer. No metrics, no segments.
+    columns:
+      - name: customer_id
+        description: Primary key - Shopify customer ID
+        tests:
+          - unique
+          - not_null
+      - name: created_at
+        description: Customer record creation timestamp
+        tests:
+          - not_null
+
+  - name: analytics_products
+    description: >
+      Canonical product dimension.
+      One row per product. No metrics, no performance.
+    columns:
+      - name: product_id
+        description: Primary key - Shopify product ID
+        tests:
+          - unique
+          - not_null
+      - name: title
+        description: Product title
+        tests:
+          - not_null
+      - name: status
+        description: Product status (active, archived, draft)
+        tests:
+          - not_null
+
+  - name: analytics_product_variants
+    description: >
+      Canonical variant (SKU-level) dimension.
+      One row per variant. No metrics, no performance.
+    columns:
+      - name: variant_id
+        description: Primary key - Shopify variant ID
+        tests:
+          - unique
+          - not_null
+      - name: product_id
+        description: Parent product ID (join key)
+        tests:
+          - not_null
+      - name: price
+        description: Variant price
+        tests:
+          - not_null
+
+  - name: analytics_refunds
+    description: >
+      Canonical refund event fact table.
+      One row per refund event. No metrics, no business logic.
+    columns:
+      - name: refund_id
+        description: Primary key - Shopify refund ID
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: Parent order ID (join key)
+        tests:
+          - not_null
+      - name: created_at
+        description: Refund creation timestamp
+        tests:
+          - not_null
+
+#analytics_orders
+#Description
+#A clean, analytics-ready table of Shopify orders. Each row represents one order exactly as Shopify reports it, without interpretation or metrics.
+#Grain
+# One row per order.
+#Primary Columns
+# order_id — Unique identifier for the order
+# order_number — Human-readable order number
+# customer_id — Customer who placed the order (if known)
+# created_at — When the order was created
+# processed_at — When the order was processed
+# financial_status — Shopify’s payment status for the order
+# fulfillment_status — Shopify’s fulfillment status
+# currency — Currency used for the order
+# total_price — Total order amount as reported by Shopify
+#________________________________________
+#analytics_order_line_items
+#Description
+#A detailed table of everything that was purchased. Each row represents a single product line within an order.
+#Grain
+#One row per line item per order.
+#Primary Columns
+# line_item_id — Unique identifier for the line item
+# order_id — Order this line item belongs to
+# product_id — Product purchased (if available)
+# variant_id — Variant purchased (if available)
+# quantity — Number of units purchased
+# price — Unit price as reported by Shopify
+# product_title — Product name
+# variant_title — Variant name (if any)
+#________________________________________
+#analytics_customers
+#Description
+#A table of Shopify customers with their basic profile information. This table represents who the customer is, not what they have done.
+#Grain
+#One row per customer.
+#Primary Columns
+# customer_id — Unique identifier for the customer
+# email — Customer email (if provided)
+# first_name — First name
+# last_name — Last name
+# created_at — When the customer record was created
+# last_order_at — Shopify’s last recorded order date for this customer
+# accepts_marketing — Whether the customer opted into marketing
+#________________________________________
+#analytics_products
+#Description
+#A catalog of Shopify products and their attributes. This table describes what products exist, not how they perform.
+#Grain
+#One row per product.
+#Primary Columns
+# product_id — Unique identifier for the product
+# title — Product name
+# vendor — Brand or vendor name
+# product_type — Shopify product category
+# status — Whether the product is active, archived, or draft
+# created_at — When the product was created
+# updated_at — When the product was last updated
+#________________________________________
+#analytics_product_variants
+#Description
+#A SKU-level table describing each product variant. This represents how products are configured and priced.
+#Grain
+#One row per product variant.
+#Primary Columns
+# variant_id — Unique identifier for the variant
+# product_id — Parent product
+# sku — SKU code (if provided)
+# price — Price of the variant
+# compare_at_price — Original price (if on sale)
+# inventory_quantity — Shopify-reported inventory quantity
+# created_at — When the variant was created
+#_______
+# analytics_refunds
+#Description
+#A table of refund events exactly as Shopify records them. Each row represents a single refund action.
+#Grain
+#One row per refund event.
+#Primary Columns
+# refund_id — Unique identifier for the refund
+# order_id — Order being refunded
+# created_at — When the refund was created
+# processed_at — When the refund was processed
+# currency — Currency of the refund
+# note — Internal note (if any)
+

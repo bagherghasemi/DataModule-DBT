@@ -1,0 +1,210 @@
+version: 2
+
+models:
+  - name: analytics_ad_accounts
+    description: >
+      Canonical ad account dimension.
+      One row per Meta ad account. No metrics, no performance.
+    columns:
+      - name: ad_account_id
+        description: Primary key - Meta ad account ID
+        tests:
+          - unique
+          - not_null
+      - name: account_name
+        description: Ad account name
+        tests:
+          - not_null
+      - name: currency
+        description: Ad account currency
+        tests:
+          - not_null
+
+  - name: analytics_campaigns
+    description: >
+      Canonical campaign dimension.
+      One row per Meta campaign. No metrics, no performance.
+    columns:
+      - name: campaign_id
+        description: Primary key - Meta campaign ID
+        tests:
+          - unique
+          - not_null
+      - name: ad_account_id
+        description: Parent ad account ID (join key)
+        tests:
+          - not_null
+      - name: campaign_name
+        description: Campaign name
+        tests:
+          - not_null
+      - name: status
+        description: Campaign status
+        tests:
+          - not_null
+
+  - name: analytics_ad_sets
+    description: >
+      Canonical ad set dimension.
+      One row per Meta ad set. No metrics, no performance.
+    columns:
+      - name: ad_set_id
+        description: Primary key - Meta ad set ID
+        tests:
+          - unique
+          - not_null
+      - name: campaign_id
+        description: Parent campaign ID (join key)
+        tests:
+          - not_null
+      - name: ad_account_id
+        description: Parent ad account ID (join key)
+        tests:
+          - not_null
+      - name: ad_set_name
+        description: Ad set name
+        tests:
+          - not_null
+      - name: status
+        description: Ad set status
+        tests:
+          - not_null
+
+  - name: analytics_ads
+    description: >
+      Canonical ad dimension.
+      One row per Meta ad. No metrics, no performance.
+    columns:
+      - name: ad_id
+        description: Primary key - Meta ad ID
+        tests:
+          - unique
+          - not_null
+      - name: ad_set_id
+        description: Parent ad set ID (join key)
+        tests:
+          - not_null
+      - name: campaign_id
+        description: Parent campaign ID (join key)
+        tests:
+          - not_null
+      - name: ad_account_id
+        description: Parent ad account ID (join key)
+        tests:
+          - not_null
+      - name: ad_name
+        description: Ad name
+        tests:
+          - not_null
+      - name: status
+        description: Ad status
+        tests:
+          - not_null
+
+  - name: analytics_ad_performance_daily
+    description: >
+      Canonical performance fact table.
+      One row per ad per day. Raw metrics only, no KPIs.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - ad_id
+            - date
+    columns:
+      - name: ad_id
+        description: Ad ID (composite primary key component)
+        tests:
+          - not_null
+      - name: date
+        description: Performance date (composite primary key component)
+        tests:
+          - not_null
+      - name: ad_set_id
+        description: Parent ad set ID (join key)
+        tests:
+          - not_null
+      - name: campaign_id
+        description: Parent campaign ID (join key)
+        tests:
+          - not_null
+      - name: ad_account_id
+        description: Parent ad account ID (join key)
+        tests:
+          - not_null
+
+
+
+
+#analytics_ad_accounts
+#Description
+#A list of Meta ad accounts and their basic settings. This table provides structure, not performance.
+#Grain
+#One row per ad account.
+#Primary Columns
+# ad_account_id — Unique identifier for the ad account
+# account_name — Name of the ad account
+# account_status — Current status of the account
+# currency — Currency used for billing
+# timezone_name — Account timezone
+# created_time — When the account was created
+#________________________________________
+#analytics_campaigns
+#Description
+#A table of Meta campaigns and their configuration. This describes how campaigns are set up, not how they perform.
+#Grain
+#One row per campaign.
+#Primary Columns
+# campaign_id — Unique identifier for the campaign
+# ad_account_id — Parent ad account
+# campaign_name — Campaign name
+# objective — Meta’s objective for the campaign
+# status — Campaign status
+# created_time — When the campaign was created
+#________________________________________
+#analytics_ad_sets
+#Description
+#A table of Meta ad sets, which define targeting, budgets, and delivery rules.
+#Grain
+#One row per ad set.
+#Primary Columns
+# ad_set_id — Unique identifier for the ad set
+# campaign_id — Parent campaign
+# ad_account_id — Parent ad account
+# ad_set_name — Name of the ad set
+# status — Ad set status
+# daily_budget — Daily budget (if set)
+# created_time — When the ad set was created
+#________________________________________
+#analytics_ads
+#Description
+#A table of individual Meta ads and their creative configuration.
+#Grain
+#One row per ad.
+#Primary Columns
+# ad_id — Unique identifier for the ad
+# ad_set_id — Parent ad set
+# campaign_id — Parent campaign
+# ad_account_id — Parent ad account
+# ad_name — Ad name
+# status — Ad status
+# creative_id — Creative identifier (if available)
+# created_time — When the ad was created
+#________________________________________
+#analytics_ad_performance_daily
+#Description
+#The raw daily performance table from Meta. Each row shows what happened for one ad on one specific day.
+#Grain
+#One row per ad per day.
+#Primary Columns
+# ad_id — Ad being measured
+# ad_set_id — Parent ad set
+# campaign_id — Parent campaign
+# ad_account_id — Parent ad account
+# date — Date of performance
+# impressions — Number of times the ad was shown
+# clicks — Number of clicks
+# spend — Amount spent that day
+# conversions — Reported conversions (if available)
+# currency — Currency of spend
+#________________________________________
+

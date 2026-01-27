@@ -1,0 +1,105 @@
+version: 2
+
+sources:
+
+  # =========================
+  # Shopify Source
+  # =========================
+  - name: shopify
+    database: shopify-raw-483813
+    schema: shopify_raw
+    description: >
+      Raw Shopify data ingested via managed connector (e.g. Fivetran).
+      Tables represent latest-state records only. No guaranteed historical change tracking.
+
+    tables:
+
+      - name: shopify_orders
+        description: >
+          One row per Shopify order (latest state).
+          Orders may be updated post-creation (financial status, fulfillment status, refunds).
+        loaded_at_field: updated_at
+
+      - name: shopify_order_line_items
+        description: >
+          One row per order line item.
+          Line items are associated to orders via order_id.
+        loaded_at_field: updated_at
+
+      - name: shopify_customers
+        description: >
+          One row per Shopify customer (latest state).
+          Customer records may be updated over time.
+        loaded_at_field: updated_at
+
+      - name: shopify_products
+        description: >
+          One row per Shopify product.
+          Products may be updated or archived.
+        loaded_at_field: updated_at
+
+      - name: shopify_product_variants
+        description: >
+          One row per product variant.
+          Variants belong to products.
+        loaded_at_field: updated_at
+
+      - name: shopify_refunds
+        description: >
+          One row per refund event.
+          Refunds are explicit monetary reversal events tied to orders.
+        loaded_at_field: updated_at
+
+      - name: shopify_transactions
+        description: >
+          One row per payment transaction.
+          Includes authorizations, captures, refunds, voids.
+        loaded_at_field: updated_at
+
+      - name: shopify_fulfillments
+        description: >
+          One row per fulfillment event.
+          Fulfillments may be partial and updated over time.
+        loaded_at_field: updated_at
+
+
+  # =========================
+  # Meta (Facebook Ads) Source
+  # =========================
+  - name: meta
+    database: shopify-raw-483813
+    schema: Meta_raw
+    description: >
+      Raw Meta (Facebook) Ads data ingested via managed connector (e.g. Fivetran).
+      Ad performance is reported at ad-day grain.
+      Multiple ad accounts per brand are supported.
+
+    tables:
+
+      - name: meta_ad_accounts
+        description: >
+          One row per Meta ad account.
+          Contains account-level metadata and currency.
+        loaded_at_field: updated_time
+
+      - name: meta_campaigns
+        description: >
+          One row per campaign (latest state).
+        loaded_at_field: updated_time
+
+      - name: meta_ad_sets
+        description: >
+          One row per ad set (latest state).
+        loaded_at_field: updated_time
+
+      - name: meta_ads
+        description: >
+          One row per ad (latest state).
+        loaded_at_field: updated_time
+
+      - name: meta_ad_performance_daily
+        description: >
+          One row per ad per day.
+          Canonical performance fact table at ad-day grain.
+          Spend is reported in ad account currency.
+        loaded_at_field: date
