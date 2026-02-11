@@ -1,0 +1,51 @@
+models:
+  - name: identity_population_profiles
+    description: >
+      Canonical identity composition reference frame.
+      Defines who exists at each population stage for each cohort.
+    columns:
+      - name: cohort_id
+        tests:
+          - not_null
+      - name: population_stage
+        tests:
+          - not_null
+
+  - name: identity_transition_matrix
+    description: >
+      Structural space of possible transitions between population stages.
+      Metrics intentionally uncomputed.
+    columns:
+      - name: cohort_id
+        tests: [not_null]
+      - name: from_population_stage
+        tests: [not_null]
+      - name: to_population_stage
+        tests: [not_null]
+
+  - name: identity_drift_vectors
+    description: >
+      Scaffold for cohort-level identity drift.
+      Values intentionally NULL until identity dimensions exist.
+    columns:
+      - name: cohort_id
+        tests: [not_null, unique]
+
+  - name: belief_attrition_curves
+    description: >
+      Temporal scaffold for belief attrition.
+      No belief inference performed yet.
+    columns:
+      - name: cohort_id
+        tests: [not_null]
+      - name: date
+        tests: [not_null]
+
+  - name: promise_survival_index
+    description: >
+      Scaffold for evaluating promise survival at the cohort level.
+      Promise definitions not yet available.
+    columns:
+      - name: cohort_id
+        tests: [not_null, unique]
+

@@ -1,0 +1,292 @@
+version: 2
+
+models:
+  - name: psychological_friction_profiles
+    description: >
+      Cohort-level psychological friction profile. One row per cohort_id.
+      Encodes structural forms of internal resistance a cohort experiences
+      when approaching commitment; not abandonment, UX friction, conversion,
+      regret, or motivation loss.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: friction_trust_intensity
+        description: Structural resistance from weakened or unstable trust expectations; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "friction_trust_intensity is not null"
+      - name: friction_risk_intensity
+        description: Resistance from perceived economic or relational risk; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "friction_risk_intensity is not null"
+      - name: friction_cognitive_intensity
+        description: Resistance from overwhelm, complexity, or cognitive load; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "friction_cognitive_intensity is not null"
+      - name: friction_identity_intensity
+        description: Resistance from misalignment between brand signals and cohort identity; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "friction_identity_intensity is not null"
+      - name: friction_control_intensity
+        description: Resistance from perceived loss of agency or control; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "friction_control_intensity is not null"
+      - name: friction_expectation_intensity
+        description: Resistance from mismatch between promises and lived experience; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "friction_expectation_intensity is not null"
+      - name: friction_coherence
+        description: Degree friction axes align into a consistent resistance pattern; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "friction_coherence is not null"
+      - name: friction_volatility
+        description: Degree of fluctuation or instability across friction axes; >= 0.
+      - name: psychological_friction_fingerprint
+        description: Structural pattern of friction across axes.
+      - name: commitment_readiness_score
+        description: Derived scalar summarizing readiness under existing friction conditions.
+
+  - name: trust_formation_curves
+    description: >
+      Cohort-level longitudinal trust formation state. One row per cohort_id × date.
+      Tracks structural formation of trust as belief stabilization over time,
+      independent of satisfaction, loyalty, or outcomes.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: date
+        description: Calendar date aligned to dim_date.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date
+      - name: trust_level
+        description: Current accumulated level of structural trust for the cohort at this date; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "trust_level is not null"
+      - name: trust_velocity
+        description: Rate at which trust is forming at this date; >= 0, may be NULL if velocity cannot be computed.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              where: "trust_velocity is not null"
+      - name: trust_acceleration
+        description: Change in trust velocity over time; may be NULL if historical depth is insufficient.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - cohort_id
+            - date
+
+  - name: trust_decay_signatures
+    description: >
+      Cohort-level trust decay signature. One row per cohort_id.
+      Encodes the structural pattern and intensity of trust breakdown for a cohort
+      as belief erosion over time; not churn, emotion, or loyalty loss.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: trust_decay_signature
+        description: Encoded pattern describing how trust collapses for the cohort; structural, bounded.
+      - name: trust_fragility_index
+        description: Degree to which cohort trust is vulnerable to breakdown; bounded [0,1], higher = weaker.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "trust_fragility_index is not null"
+      - name: trust_repairability_score
+        description: Structural probability that trust can be repaired once degraded; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "trust_repairability_score is not null"
+      - name: collapse_speed
+        description: Relative speed at which trust deteriorates once decay begins; non-negative.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              where: "collapse_speed is not null"
+
+  - name: expectation_violation_scores
+    description: >
+      Cohort × date structural expectation violation. One row per cohort_id × date.
+      Encodes magnitude, fragility, and repairability of promise–reality mismatch;
+      not emotion, dissatisfaction, regret, churn, or sentiment.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: date
+        description: Calendar date aligned to dim_date.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date
+      - name: creative_cluster
+        description: Placeholder until canonical creative–cohort bridge exists; not materialized.
+      - name: expectation_violation_magnitude
+        description: Degree of structural mismatch between implied and experienced; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "expectation_violation_magnitude is not null"
+      - name: expectation_fragility
+        description: Sensitivity of expectations to breakdown once mismatch begins; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "expectation_fragility is not null"
+      - name: expectation_repairability
+        description: Structural likelihood violated expectations can be re-aligned; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "expectation_repairability is not null"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - cohort_id
+            - date
+
+  - name: cognitive_load_profiles
+    description: >
+      Cohort-level stabilized cognitive load profile. One row per cohort_id.
+      Encodes structural mental effort required for a cohort to process information
+      and sustain decision confidence; not emotional confusion, UX quality, or trust outcomes.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: cognitive_load_complexity
+        description: Structural information complexity imposed on the cohort; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "cognitive_load_complexity is not null"
+      - name: cognitive_load_choice_overload
+        description: Choice burden from option volume or differentiation demands; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "cognitive_load_choice_overload is not null"
+      - name: cognitive_load_uncertainty_processing
+        description: Structural effort to process ambiguity, risk, or incomplete information; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "cognitive_load_uncertainty_processing is not null"
+      - name: cognitive_load_novelty_processing
+        description: Mental effort to process unfamiliar concepts, products, or frames; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "cognitive_load_novelty_processing is not null"
+      - name: cognitive_load_tolerance
+        description: Structural capacity to sustain imposed cognitive load without destabilization; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "cognitive_load_tolerance is not null"
+      - name: cognitive_fragility
+        description: Structural susceptibility to overload when complexity or uncertainty increases; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "cognitive_fragility is not null"
+
+  - name: regret_formation_indices
+    description: >
+      Cohort-level structural regret formation state. One row per cohort_id.
+      Encodes emergence and persistence of post-choice reversal pressure;
+      not emotional disappointment, satisfaction, refunds, complaints, churn, or sentiment.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: regret_probability
+        description: Likelihood that latent regret pressure has formed for the cohort; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "regret_probability is not null"
+      - name: regret_latency
+        description: Delay between choice commitment and onset of regret pressure; >= 0.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              where: "regret_latency is not null"
+      - name: regret_persistence
+        description: Durability of regret pressure once formed; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "regret_persistence is not null"

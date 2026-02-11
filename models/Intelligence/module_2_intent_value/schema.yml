@@ -1,0 +1,98 @@
+models:
+  - name: intent_field_profiles
+    description: >
+      Canonical representation of human intent fields at the cohort level.
+      Defines what cohorts are seeking prior to value delivery or outcomes.
+    columns:
+      - name: cohort_id
+        description: >
+          Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+
+  - name: value_field_profiles
+    description: >
+      Canonical representation of value delivered to cohorts.
+      Captures experienced value independent of intent, satisfaction, or loyalty.
+    columns:
+      - name: cohort_id
+        description: >
+          Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+
+  - name: desire_value_map
+    description: >
+      Cohort-level desire–value dual-space positioning from intent and value profiles.
+    columns:
+      - name: cohort_id
+        description: >
+          Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+          - relationships:
+              to: ref('intent_field_profiles')
+              field: cohort_id
+          - relationships:
+              to: ref('value_field_profiles')
+              field: cohort_id
+      - name: desire_coordinate
+        description: >
+          Cohort position along the desire axis, from intent field.
+        tests:
+          - not_null
+      - name: value_coordinate
+        description: >
+          Cohort position along the value axis, from value field.
+        tests:
+          - not_null
+      - name: structural_zone_label
+        description: >
+          Derived structural zone (extraction, stability, illusion, hidden_compounding).
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - extraction
+                - stability
+                - illusion
+                - hidden_compounding
+
+  - name: reciprocity_differential_vectors
+    description: >
+      Cohort-level reciprocity differential vector: magnitude and direction
+      of desire–value imbalance, and velocity of imbalance change.
+    columns:
+      - name: cohort_id
+        description: >
+          Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+          - relationships:
+              to: ref('desire_value_map')
+              field: cohort_id
+      - name: desire_reciprocity_differential_magnitude
+        description: >
+          Absolute strength of the mismatch between desire and value.
+        tests:
+          - not_null
+      - name: desire_reciprocity_differential_direction
+        description: >
+          Directional orientation of the mismatch (desire-dominant vs value-dominant).
+        tests:
+          - not_null
+      - name: imbalance_velocity
+        description: >
+          Rate at which the desire–value imbalance is changing.
+        tests:
+          - not_null

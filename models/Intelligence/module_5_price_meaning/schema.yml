@@ -1,0 +1,233 @@
+version: 2
+
+models:
+  - name: price_meaning_vectors
+    description: >
+      Cohort-level price meaning profile. One row per cohort_id.
+      Encodes how each cohort psychologically interprets paying the brand;
+      price as meaning-bearing signal, not economic variable.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: price_meaning_smart_choice_intensity
+        description: Extent paying is interpreted as rational/clever decision; bounded [0,1].
+      - name: price_meaning_investing_in_self_intensity
+        description: Extent paying is interpreted as self-investment; bounded [0,1].
+      - name: price_meaning_exploitation_intensity
+        description: Extent paying is interpreted as being taken advantage of; bounded [0,1].
+      - name: price_meaning_risk_intensity
+        description: Extent paying is interpreted as exposure to danger/loss; bounded [0,1].
+      - name: price_meaning_safety_intensity
+        description: Extent paying is interpreted as reassurance/protection; bounded [0,1].
+      - name: price_meaning_treat_intensity
+        description: Extent paying is interpreted as discretionary indulgence; bounded [0,1].
+      - name: price_meaning_identity_intensity
+        description: Extent paying is interpreted as reinforcing/expressing identity; bounded [0,1].
+      - name: price_meaning_coherence
+        description: Consistency of price meaning axes; bounded [0,1].
+      - name: price_meaning_volatility
+        description: Degree cohort price meaning shifts over time; >= 0.
+      - name: price_meaning_vector
+        description: Composite representation of cohort price meaning across all axes.
+      - name: identity_anchoring_score
+        description: How strongly price meaning is bound to identity; bounded [0,1].
+
+  - name: value_interpretation_profiles
+    description: >
+      Cohort-level value interpretation profile. One row per cohort_id.
+      Encodes how each cohort structurally interprets what "value" means
+      when interacting with the brand, independent of outcomes or performance.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: rational_value_weight
+        description: Degree cohort interprets value through logical/reasoned assessment; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "rational_value_weight is not null"
+      - name: emotional_value_weight
+        description: Degree cohort interprets value through internal affective resonance; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "emotional_value_weight is not null"
+      - name: identity_value_weight
+        description: Extent value is decoded as expression/reinforcement of self-identity; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "identity_value_weight is not null"
+      - name: social_value_weight
+        description: Extent value is interpreted through social signaling/belonging/external perception; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "social_value_weight is not null"
+      - name: security_value_weight
+        description: Extent value is interpreted as safety/protection/risk reduction; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "security_value_weight is not null"
+      - name: interpretation_consistency
+        description: Internal consistency of cohort value interpretation weights across signals; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "interpretation_consistency is not null"
+      - name: interpretive_conflict_index
+        description: Degree of internal contradiction between competing value interpretation axes; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "interpretive_conflict_index is not null"
+
+  - name: discount_psychology_indices
+    description: >
+      Cohort-level discount psychology profile. One row per cohort_id.
+      Encodes how each cohort psychologically interprets discounts as signals
+      affecting trust, dependence, and identity, independent of commercial performance.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: discount_trust_effect
+        description: Directional psychological impact of discounts on perceived trust; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "discount_trust_effect is not null"
+      - name: discount_dependency_risk
+        description: Structural risk that discounts create expectation dependency; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "discount_dependency_risk is not null"
+      - name: discount_identity_threat
+        description: Structural risk that discounts weaken identity-based attachment; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "discount_identity_threat is not null"
+      - name: discount_psychology_index
+        description: Composite index summarizing overall discount psychological impact; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "discount_psychology_index is not null"
+
+  - name: relationship_erosion_curves
+    description: >
+      Cohort × discount intensity band relationship erosion state.
+      Encodes how persistent price- and discount-related psychological misalignment
+      structurally degrades the cohort–brand relationship across discount intensity contexts.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: discount_intensity_band
+        description: Human-relative discount context under which erosion is evaluated (structural, not evaluative).
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_discount_intensity_band')
+              field: discount_intensity_band_key
+      - name: trust_erosion_probability
+        description: Probability that continued exposure at this discount intensity structurally degrades relational trust; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "trust_erosion_probability is not null"
+      - name: attachment_decay_rate
+        description: Rate at which relational attachment weakens under sustained psychological misalignment; bounded, directional.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "attachment_decay_rate is not null"
+      - name: identity_disruption_index
+        description: Degree to which pricing and discount signals disrupt identity alignment with the brand; non-negative, cohort-level.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "identity_disruption_index is not null"
+      - name: relationship_erosion_threshold
+        description: Structural breakpoint at which erosion becomes self-reinforcing for this cohort × discount context; evolving, may be NULL.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - cohort_id
+            - discount_intensity_band
+
+  - name: economic_dissonance_curves
+    description: >
+      Cohort × date economic dissonance state. Tracks accumulation and evolution
+      of internal economic contradiction between expected meaning and lived
+      experience at the cohort level over time.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: date
+        description: Calendar date (temporal grain).
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date
+      - name: anticipated_value
+        description: Structural representation of value meaning the cohort expects prior to lived experience; bounded, cohort-relative.
+      - name: experienced_value
+        description: Structural representation of value meaning derived from lived interaction outcomes; bounded, temporal.
+      - name: reflective_value
+        description: Stabilized internal reconciliation of expectation versus experience over time; lagging, smoothing, bounded.
+      - name: dissonance_magnitude
+        description: Scalar magnitude of unresolved contradiction between anticipated and experienced value; ≥ 0, temporal.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              where: "dissonance_magnitude is not null"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - cohort_id
+            - date

@@ -1,0 +1,107 @@
+version: 2
+
+models:
+  - name: creative_psychological_profiles
+    description: >
+      Implied psychological promise structure of each Meta creative.
+      One row per creative_id. Promise intensities from delivery and interaction
+      patterns only; no cohort, population, or recruitment logic.
+    columns:
+      - name: creative_id
+        description: Meta creative identifier. One row per creative.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('analytics_ads')
+              field: creative_id
+
+  - name: creative_recruitment_signatures
+    description: >
+      One creative × cohort recruitment relationship per row.
+      Describes which identity populations and value shapes each creative
+      disproportionately recruits, as a stable creative × cohort recruitment signature.
+    columns:
+      - name: creative_id
+        description: Meta creative identifier.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('analytics_ads')
+              field: creative_id
+      - name: cohort_id
+        description: Cohort identifier.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - creative_id
+            - cohort_id
+
+  - name: narrative_concordance_scores
+    description: >
+      One row per creative. Promise–reality alignment: narrative_behavior_concordance,
+      expectation_violation_rate, lived_experience_divergence; dominant_misalignment_axis.
+    columns:
+      - name: creative_id
+        description: Meta creative identifier. One row per creative.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('analytics_ads')
+              field: creative_id
+
+  - name: story_yield_curves
+    description: >
+      One row per (creative_id, date). Narrative-level relational yield over time;
+      expressed_desire, realized_value, relationship_stability, story_yield.
+    columns:
+      - name: creative_id
+        description: Meta creative identifier.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('analytics_ads')
+              field: creative_id
+      - name: date
+        description: Calendar date.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - creative_id
+            - date
+
+  - name: regret_risk_indices
+    description: >
+      One row per creative. Structural regret risk profile: dominant_regret_trigger,
+      regret_induction_probability, expectation_collapse_rate, psychological_debt_index,
+      regret_risk_index. Risk-index based, not date-grained.
+    columns:
+      - name: creative_id
+        description: Meta creative identifier. One row per creative.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('analytics_ads')
+              field: creative_id
+      - name: dominant_regret_trigger
+        description: Primary structural mechanism generating regret risk.
+      - name: regret_induction_probability
+        description: Likelihood of structurally induced regret; bounded [0,1].
+      - name: expectation_collapse_rate
+        description: Rate narrative expectations fail to sustain; non-negative.
+      - name: psychological_debt_index
+        description: Accumulated structural misalignment; non-negative.
+      - name: regret_risk_index
+        description: Derived regret risk feature.

@@ -1,0 +1,90 @@
+version: 2
+
+models:
+  - name: cohort_to_archetype_mapping
+    description: >
+      Encodes the evolving probabilistic relationship between cohorts and archetypes
+      based on observed structural alignment across the system.
+    columns:
+      - name: cohort_id
+        description: Identifier of the cohort being mapped.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: archetype_id
+        description: Identifier of the archetype reference type.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('archetype_definitions')
+              field: archetype_id
+      - name: date
+        description: Effective date of the mapping state.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date
+      - name: membership_weight
+        description: Soft proportional strength of alignment between the cohort and the archetype.
+        tests:
+          - not_null
+      - name: membership_confidence
+        description: Degree of certainty in the membership_weight.
+        tests:
+          - not_null
+      - name: primary_evidence_modules
+        description: Array of module identifiers contributing meaningful evidence.
+      - name: assignment_status
+        description: Qualitative state of the mapping (provisional, stable, decaying).
+        tests:
+          - accepted_values:
+              values:
+                - provisional
+                - stable
+                - decaying
+
+  - name: archetype_transition_paths
+    description: >
+      Captures observed structural movement patterns between archetypes over time
+      without inferring intent or prediction.
+    columns:
+      - name: from_archetype_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('archetype_definitions')
+              field: archetype_id
+      - name: to_archetype_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('archetype_definitions')
+              field: archetype_id
+      - name: date
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date
+      - name: transition_weight
+      - name: transition_probability
+      - name: net_flow_direction
+      - name: transition_stability
+      - name: confidence_adjusted_flow
+
+  - name: archetype_fingerprints
+    description: >
+      Defines the canonical structural expression pattern of each archetype across the system's modules.
+    columns:
+      - name: archetype_id
+        description: >
+          References archetype_definitions. One row per archetype.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('archetype_definitions')
+              field: archetype_id

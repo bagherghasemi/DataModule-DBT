@@ -1,0 +1,256 @@
+version: 2
+
+models:
+  - name: relationship_trajectories
+    description: >
+      Cohort-level relationship trajectory state. One row per cohort_id × date.
+      Encodes the continuous, multi-axis structural trajectory of a cohort's
+      relationship with the brand over time. Relationship geometry only; not
+      retention, churn, loyalty, satisfaction, or behavioral exit events.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: date
+        description: Calendar date aligned to dim_date.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date
+      - name: trajectory_emotional_depth
+        description: Structural depth of the relational bond over time.
+      - name: trajectory_trust
+        description: Accumulated trust position within the relationship trajectory.
+      - name: trajectory_identity_alignment
+        description: Degree of structural alignment between cohort identity and brand identity.
+      - name: trajectory_desire_stability
+        description: Persistence and stability of desire within the relationship context.
+      - name: trajectory_friction_pressure
+        description: Ongoing resistance pressure acting against relationship progression.
+      - name: relational_stability
+        description: Degree to which the relationship trajectory remains structurally stable over time.
+      - name: relationship_volatility
+        description: Magnitude and frequency of directional fluctuation within the trajectory.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - cohort_id
+            - date
+
+  - name: relationship_phase_states
+    description: >
+      Cohort-level relationship phase probability distribution at a specific date.
+      One row per cohort_id × date. Phases are soft probabilities that coexist;
+      not funnel stages, lifecycle labels, CRM states, retention, churn, or outcomes.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: date
+        description: Calendar date aligned to dim_date.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date
+      - name: phase_awareness_prob
+        description: Probability mass for initial awareness of the brand; bounded [0,1].
+      - name: phase_curiosity_prob
+        description: Probability mass for exploratory interest and information seeking; bounded [0,1].
+      - name: phase_hope_prob
+        description: Probability mass for optimistic anticipation of potential fit or benefit; bounded [0,1].
+      - name: phase_evaluation_prob
+        description: Probability mass for active assessment and comparison; bounded [0,1].
+      - name: phase_commitment_prob
+        description: Probability mass for readiness to commit or align; bounded [0,1].
+      - name: phase_relief_prob
+        description: Probability mass for post-decision easing of uncertainty; bounded [0,1].
+      - name: phase_satisfaction_prob
+        description: Probability mass for stabilized positive appraisal after experience; bounded [0,1].
+      - name: phase_attachment_prob
+        description: Probability mass for emerging psychological bond; bounded [0,1].
+      - name: phase_advocacy_prob
+        description: Probability mass for inclination to support or endorse; bounded [0,1].
+      - name: phase_drift_prob
+        description: Probability mass for weakening engagement without explicit exit; bounded [0,1].
+      - name: phase_exit_prob
+        description: Probability mass for psychological disengagement or separation; bounded [0,1].
+      - name: phase_return_prob
+        description: Probability mass for re-entry or renewed engagement after exit; bounded [0,1].
+      - name: phase_entropy
+        description: Diagnostic dispersion across phase probabilities; higher is more diffuse.
+      - name: phase_confidence
+        description: Diagnostic concentration within the phase distribution; higher is clearer localization.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - cohort_id
+            - date
+
+  - name: emotional_half_life_profiles
+    description: >
+      Cohort-level structural emotional decay profile. One row per cohort_id.
+      Encodes the structural persistence and decay rate of relational effects for a cohort over time.
+      Not emotional intensity, satisfaction, trust level, attachment, loyalty, retention, or behavioral outcomes.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: emotional_half_life
+        description: Structural time constant describing how long relational effects persist before decaying; NULL when insufficient longitudinal depth.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: false
+              where: "emotional_half_life is not null"
+      - name: decay_velocity
+        description: Relative speed at which emotional and relational effects diminish; non-negative, structural decay rate.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              where: "decay_velocity is not null"
+      - name: reinforcement_sensitivity
+        description: Degree to which decay is slowed or stabilized by reinforcing signals; bounded scalar, not satisfaction or attachment.
+
+  - name: relationship_phase_transition_matrices
+    description: >
+      Directional, time-indexed flow of relationship phase probability mass between
+      psychological phases at cohort level. One row per cohort_id × phase_from × phase_to × date.
+      Encodes drift geometry only; not funnel progression, lifecycle, or churn.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: phase_from
+        description: Originating psychological phase from which probability mass departs.
+        tests:
+          - not_null
+      - name: phase_to
+        description: Destination psychological phase to which probability mass flows.
+        tests:
+          - not_null
+      - name: date
+        description: Calendar date aligned to dim_date.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date
+      - name: transition_probability
+        description: Proportion of phase probability mass moving from phase_from to phase_to; bounded [0,1].
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "transition_probability is not null"
+      - name: transition_velocity
+        description: Speed or intensity of probability mass shift between phases; >= 0.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              where: "transition_velocity is not null"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - cohort_id
+            - phase_from
+            - phase_to
+            - date
+
+  - name: return_elasticity_indices
+    description: >
+      Cohort-level structural return elasticity profile. One row per cohort_id.
+      Encodes the structural sensitivity of a cohort's relationship to re-entering
+      after drift or exit, under changing psychological conditions. Diagnostic and
+      descriptive; not retention, win-back, marketing effectiveness, satisfaction,
+      trust level, loyalty strength, or outcome success.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: return_elasticity_score
+        description: >
+          Structural likelihood and responsiveness of a cohort to re-enter a
+          relationship after drift or exit, conditioned by regret pressure, trust
+          repairability, motivational persistence, and identity anchoring. NULL when
+          insufficient historical return cycles or repairability signals exist.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              where: "return_elasticity_score is not null"
+
+  - name: attachment_velocity_scores
+    description: >
+      Cohort-level attachment momentum profile. One row per cohort_id.
+      Encodes the directional speed and acceleration at which a cohort's relationship
+      moves toward or away from attachment over time. Movement only; not attachment
+      strength, loyalty, retention, satisfaction, trust level, or behavioral outcomes.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: attachment_velocity
+        description: >
+          Current directional speed at which the cohort's relationship is moving
+          toward or away from attachment. Signed; change rate only, not attachment level.
+      - name: attachment_acceleration
+        description: >
+          Rate of change of attachment_velocity; whether bonding speed is increasing
+          or slowing. Signed; momentum change only, not outcome.
+
+  - name: loyalty_morphology_vectors
+    description: >
+      Cohort-level structural loyalty morphology vector. One row per cohort_id.
+      Encodes the structural geometric shape of how loyalty forms, persists, decays,
+      and recovers for a cohort over time, without evaluating outcomes or strength.
+      Not retention, churn, satisfaction, trust level, revenue, success, or failure.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: loyalty_stability
+        description: Structural steadiness of loyalty over time, independent of magnitude.
+      - name: loyalty_growth_rate
+        description: Structural tendency for loyalty to deepen or expand over time.
+      - name: loyalty_volatility
+        description: Structural variability or erraticism of loyalty behavior across time.
+      - name: loyalty_recovery_speed
+        description: Structural speed at which loyalty reconstitutes after degradation.
+      - name: loyalty_decay_rate
+        description: Structural speed at which loyalty erodes when unsupported.
+      - name: loyalty_morphology
+        description: Composite geometric representation of the loyalty morphology dimensions.

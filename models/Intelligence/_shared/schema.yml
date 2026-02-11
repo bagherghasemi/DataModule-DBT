@@ -3,15 +3,23 @@ version: 2
 models:
   - name: dim_cohort
     description: >
-      Canonical cohort dimension.
-      Defines deterministic, recomputable cohorts used across all intelligence modules.
+      Canonical cohort membership table.
+      Defines deterministic, recomputable mapping from Shopify customer_id
+      to cohort_id, used across all intelligence modules.
     columns:
-      - name: cohort_id
+      - name: customer_id
         description: >
-          Deterministic surrogate key representing a unique cohort definition.
+          Shopify customer identifier. Each customer belongs to exactly one cohort.
         tests:
           - not_null
           - unique
+
+      - name: cohort_id
+        description: >
+          Deterministic surrogate key representing a cohort definition.
+        tests:
+          - not_null
+
 
 
   - name: dim_date
@@ -100,3 +108,85 @@ models:
           Human-readable discount intensity band label.
         tests:
           - not_null
+
+
+version: 2
+
+models:
+  - name: enum_population_stage
+    description: >
+      Canonical enum defining the allowed population stages in the system.
+      Acts as a hard ontology constraint across all intelligence models.
+    columns:
+      - name: population_stage
+        description: >
+          Canonical population stage enum value.
+        tests:
+          - not_null
+          - unique
+          - accepted_values:
+              values:
+                - exposure
+                - engagement
+                - purchase
+                - loyalty
+
+      - name: population_stage_order
+        description: >
+          Ordinal position of the population stage.
+        tests:
+          - not_null
+          - unique
+
+
+models:
+  - name: enum_phase
+    description: >
+      Canonical enum defining the allowed structural phases in the system.
+      Acts as a hard ontology constraint across all intelligence models.
+    columns:
+      - name: phase
+        description: >
+          Canonical structural phase enum value.
+        tests:
+          - not_null
+          - unique
+          - accepted_values:
+              values:
+                - extraction
+                - stability
+                - illusion
+                - hidden_compounding
+
+      - name: phase_order
+        description: >
+          Ordinal position of the structural phase.
+        tests:
+          - not_null
+          - unique
+
+models:
+  - name: enum_structural_zone
+    description: >
+      Canonical enum defining the allowed structural zones in the system.
+      Acts as a hard ontology constraint across all intelligence models.
+    columns:
+      - name: structural_zone
+        description: >
+          Canonical structural zone enum value.
+        tests:
+          - not_null
+          - unique
+          - accepted_values:
+              values:
+                - extraction
+                - stability
+                - illusion
+                - hidden_compounding
+
+      - name: structural_zone_order
+        description: >
+          Ordinal position of the structural zone.
+        tests:
+          - not_null
+          - unique

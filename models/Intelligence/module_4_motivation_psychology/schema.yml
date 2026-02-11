@@ -1,0 +1,110 @@
+version: 2
+
+models:
+  - name: motivation_vectors
+    description: >
+      Cohort-level motivational force vectors.
+      One row per cohort_id. Persistent internal motivational force fields;
+      not individual, emotional, or behavioral.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: motivation_status_intensity
+      - name: motivation_safety_intensity
+      - name: motivation_control_intensity
+      - name: motivation_belonging_intensity
+      - name: motivation_relief_intensity
+      - name: motivation_meaning_intensity
+      - name: motivation_pleasure_intensity
+      - name: motivation_certainty_intensity
+      - name: motivation_coherence
+      - name: motivation_conflict_index
+      - name: motivational_entropy
+      - name: motivation_vector
+
+  - name: psychological_need_profiles
+    description: >
+      Cohort-level psychological need configuration.
+      One row per cohort_id. Stable need structure; not individual, emotional, or outcome-derived.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: emotional_need_intensity
+      - name: cognitive_need_intensity
+      - name: identity_need_intensity
+      - name: social_need_intensity
+      - name: existential_need_intensity
+      - name: need_coherence
+      - name: unmet_need_pressure
+      - name: psychological_fragility
+      - name: psychological_need_profile
+
+  - name: tension_resolution_paths
+    description: >
+      Cohort-level tension resolution profile.
+      One row per cohort_id. Dominant structural path through which internal tensions
+      are resolved via interaction with the brand; not individual, emotional, or outcome-derived.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: tension_status_insecurity
+      - name: tension_belonging_anxiety
+      - name: tension_control_loss
+      - name: tension_overwhelm
+      - name: tension_fear_of_regret
+      - name: tension_desire_for_meaning
+      - name: tension_desire_for_pleasure
+      - name: tension_need_for_certainty
+      - name: tension_resolution_effectiveness
+      - name: emotional_dependency_risk
+      - name: autonomy_reinforcement_score
+      - name: tension_resolution_path
+
+  - name: emotional_payoff_curves
+    description: >
+      Cohort-level emotional payoff trajectories.
+      One row per cohort_id and date; internal relief and reinforcement dynamics only.
+    columns:
+      - name: cohort_id
+        description: Canonical cohort identifier.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_cohort')
+              field: cohort_id
+      - name: date
+        description: Calendar date.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date
+      - name: emotional_relief_level
+      - name: emotional_satisfaction_level
+      - name: emotional_regret_level
+      - name: identity_reinforcement_level
+      - name: emotional_hangover_level
+      - name: emotional_payoff_curve
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - cohort_id
+            - date
